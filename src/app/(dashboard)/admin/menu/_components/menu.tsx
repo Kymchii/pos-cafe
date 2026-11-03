@@ -81,7 +81,7 @@ export default function MenuManagement() {
             height={60}
             className="rounded"
           />
-          {menu.name}
+          <p className="truncate">{menu.name}</p>
         </div>,
         menu.category,
         <div>

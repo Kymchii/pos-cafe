@@ -18,12 +18,14 @@ type SummaryProps = {
     customer_name: string;
     tables: { name: string }[];
     status: string;
+    payment_token: string;
   };
   orderMenu:
     | {
         menus: Menu;
         quantity: number;
         status: string;
+        nominal: number;
       }[]
     | null
     | undefined;
@@ -46,15 +48,18 @@ export default function Summary({ order, orderMenu, id }: SummaryProps) {
   ] = useActionState(generatePayment, INITIAL_STATE_GENERATE_PAYMENT);
 
   const handleGeneratePayment = () => {
-    const formData = new FormData();
+    if (order?.payment_token) {
+      window.snap.pay(order.payment_token);
+    } else {
+      const formData = new FormData();
+      formData.append("id", id || "");
+      formData.append("gross_amount", grandTotal.toString() || "");
+      formData.append("customer_name", order?.customer_name || "");
 
-    formData.append("id", id || "");
-    formData.append("gross_amount", grandTotal.toString() || "");
-    formData.append("customer_name", order?.customer_name || "");
-
-    startTransition(() => {
-      generatePaymentAction(formData);
-    });
+      startTransition(() => {
+        generatePaymentAction(formData);
+      });
+    }
   };
 
   useEffect(() => {
@@ -81,7 +86,10 @@ export default function Summary({ order, orderMenu, id }: SummaryProps) {
             <div className="space-y-2">
               <Label>Table</Label>
               <Input
-                value={(order.tables as unknown as { name: string }).name}
+                value={
+                  (order.tables as unknown as { name: string })?.name ||
+                  "Takeaway"
+                }
                 disabled
               />
             </div>
@@ -111,7 +119,11 @@ export default function Summary({ order, orderMenu, id }: SummaryProps) {
             <Button
               type="submit"
               onClick={handleGeneratePayment}
-              disabled={!isAllServed || isPendingGeneratePayment}
+              disabled={
+                !isAllServed ||
+                isPendingGeneratePayment ||
+                orderMenu?.length === 0
+              }
               className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
             >
               {isPendingGeneratePayment ? (

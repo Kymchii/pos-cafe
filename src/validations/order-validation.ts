@@ -15,5 +15,10 @@ export const orderFormSchema = z.object({
     table_id: string().min(1, 'Select a table'),
 })
 
+export const orderTakeawayFormSchema = z.object({
+    customer_name: string().min(1, 'Customer name is required'),
+})
+
 export type Order = z.infer<typeof orderSchema>
 export type OrderForm = z.infer<typeof orderFormSchema>
+export type OrderTakeawayForm = z.infer<typeof orderTakeawayFormSchema>

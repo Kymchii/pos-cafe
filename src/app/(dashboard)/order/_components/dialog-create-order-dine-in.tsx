@@ -23,12 +23,23 @@ import FormInput from "@/components/common/form-input";
 import FormSelect from "@/components/common/form-select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
-export default function DialogCreateOrder({
+type DialogCreateOrderDineInProps = {
+  tables?: Table[] | undefined | null;
+  closeDialog: () => void;
+  selectedTable?: {
+    id: string;
+    name: string;
+  };
+};
+
+export default function DialogCreateOrderDineIn({
   tables,
-}: {
-  tables: Table[] | undefined | null;
-}) {
+  closeDialog,
+  selectedTable,
+}: DialogCreateOrderDineInProps) {
   const form = useForm<OrderForm>({
     resolver: zodResolver(orderFormSchema),
     defaultValues: INITIAL_ORDER,
@@ -49,6 +60,12 @@ export default function DialogCreateOrder({
   });
 
   useEffect(() => {
+    if (selectedTable) {
+      form.setValue("table_id", `${selectedTable.id}`);
+    }
+  }, [selectedTable]);
+
+  useEffect(() => {
     if (createOrderState?.status === "error") {
       toast.error("Create Order Failed", {
         description: createOrderState.errors?._form?.[0],
@@ -58,14 +75,14 @@ export default function DialogCreateOrder({
     if (createOrderState?.status === "success") {
       toast.success("Create Order Success");
       form.reset();
-      document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
+      closeDialog();
     }
   }, [createOrderState]);
 
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Create Order</DialogTitle>
+        <DialogTitle>Create Order Dine In</DialogTitle>
         <DialogDescription>Add a new order</DialogDescription>
       </DialogHeader>
       <form onSubmit={onSubmit} className="space-y-4">
@@ -76,16 +93,23 @@ export default function DialogCreateOrder({
             name="customer_name"
             placeholder="Insert customer here"
           />
-          <FormSelect
-            form={form}
-            label="Table"
-            name="table_id"
-            selectItem={(tables ?? []).map((table: Table) => ({
-              value: `${table.id}`,
-              label: `${table.name} - ${table.status} (${table.capacity})`,
-              disabled: table.status !== "available",
-            }))}
-          />
+          {selectedTable ? (
+            <div className="space-y-2">
+              <Label>Table</Label>
+              <Input name="table_id" value={selectedTable.name} disabled />
+            </div>
+          ) : (
+            <FormSelect
+              form={form}
+              label="Table"
+              name="table_id"
+              selectItem={(tables ?? []).map((table: Table) => ({
+                value: `${table.id}`,
+                label: `${table.name} - ${table.status} (${table.capacity})`,
+                disabled: table.status !== "available",
+              }))}
+            />
+          )}
           <FormSelect
             form={form}
             label="Status"

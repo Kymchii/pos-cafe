@@ -132,4 +132,8 @@
   html {
     @apply font-mono;
   }
+  .react-flow__node {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 }
